@@ -40,7 +40,7 @@ public class OpenAIChatService : IChatService
         return response.Value.Content[0].Text;
     }
 
-    public async Task<IAsyncEnumerable<string>> GetStreamingChatCompletionAsync(List<ChatMessage> messages)
+    public Task<IAsyncEnumerable<string>> GetStreamingChatCompletionAsync(List<ChatMessage> messages)
     {
         var chatClient = _client.GetChatClient(_modelId);
 
@@ -55,6 +55,6 @@ public class OpenAIChatService : IChatService
             }
         }
 
-        return StreamResults();
+        return Task.FromResult<IAsyncEnumerable<string>>(StreamResults());
     }
 }

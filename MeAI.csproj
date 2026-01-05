@@ -21,4 +21,11 @@
     <PackageReference Include="OpenAI" Version="2.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Copy appsettings.json to output directory -->
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

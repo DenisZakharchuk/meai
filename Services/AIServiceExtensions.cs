@@ -10,9 +10,16 @@ namespace MeAI.Services;
 /// </summary>
 public static class AIServiceExtensions
 {
-    public static IServiceCollection AddAIServices(this IServiceCollection services)
+    public static IServiceCollection AddAIServices(this IServiceCollection services, IConfiguration? configuration = null)
     {
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        // If configuration not provided, try to get it from services
+        if (configuration == null)
+        {
+            var sp = services.BuildServiceProvider();
+            configuration = sp.GetRequiredService<IConfiguration>();
+            sp.Dispose();
+        }
+
         var openAiConfig = configuration.GetSection("OpenAI");
         var apiKey = openAiConfig["ApiKey"];
 

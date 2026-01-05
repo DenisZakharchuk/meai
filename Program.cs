@@ -11,6 +11,9 @@ var configuration = new ConfigurationBuilder()
 
 var services = new ServiceCollection();
 
+// Add configuration FIRST (before other services)
+services.AddSingleton(configuration);
+
 // Configure logging
 services.AddLogging(builder =>
 {
@@ -18,11 +21,8 @@ services.AddLogging(builder =>
     builder.SetMinimumLevel(LogLevel.Information);
 });
 
-// Add configuration
-services.AddSingleton(configuration);
-
-// Register AI services
-services.AddAIServices();
+// Register AI services (pass configuration directly)
+services.AddAIServices(configuration);
 
 var serviceProvider = services.BuildServiceProvider();
 
