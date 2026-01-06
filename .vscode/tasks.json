@@ -1,0 +1,125 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ensure-docker-daemon",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "if ! docker ps > /dev/null 2>&1; then echo '🐳 Starting Docker daemon...'; sudo service docker start || sudo /usr/bin/dockerd > /dev/null 2>&1 &; sleep 3; echo '✓ Docker started'; else echo '✓ Docker already running'; fi"
+            ],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ensure-docker-compose",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "cd ${workspaceFolder} && if ! docker ps --filter 'name=meai-postgres' --format '{{.Names}}' | grep -q meai-postgres; then echo '🐘 Starting PostgreSQL and pgAdmin...'; docker-compose up -d; sleep 5; echo '✓ Containers started'; else echo '✓ PostgreSQL already running'; fi"
+            ],
+            "dependsOn": ["ensure-docker-daemon"],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/MeAI.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "dependsOn": ["ensure-docker-compose"],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build-release",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/MeAI.csproj",
+                "--configuration",
+                "Release",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "${workspaceFolder}/MeAI.csproj",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/MeAI.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "run",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/MeAI.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "--project",
+                "${workspaceFolder}/MeAI.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "isBackground": true
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/MeAI.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
