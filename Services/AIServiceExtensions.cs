@@ -55,6 +55,7 @@ public static class AIServiceExtensions
         services.AddScoped<TextGenerationExample>();
         services.AddScoped<EmbeddingExample>();
         services.AddScoped<StreamingExample>();
+        services.AddScoped<PersistenceExample>();
 
         return services;
     }

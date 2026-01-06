@@ -9,6 +9,7 @@ This project provides hands-on examples of:
 - **Text Generation**: Content creation with configurable parameters (temperature, token limits)
 - **Embeddings**: Vector representations for semantic analysis and similarity
 - **Streaming**: Real-time token-by-token response handling
+- **Data Persistence**: Store conversations and embeddings in PostgreSQL
 
 ## 📋 Prerequisites
 
@@ -60,13 +61,27 @@ MeAI/
 │   ├── AIServiceExtensions.cs     # DI configuration
 │   ├── ChatService.cs             # Chat operations
 │   ├── EmbeddingService.cs        # Embedding operations
+│   ├── IRepositories.cs           # Persistence interfaces
+│   ├── Repositories.cs            # Repository implementations
 │   ├── ChatExample.cs             # Chat example
 │   ├── TextGenerationExample.cs   # Text generation example
+│   ├── EmbeddingExample.cs        # Embeddings example
 │   ├── StreamingExample.cs        # Streaming example
-│   └── EmbeddingExample.cs        # Embeddings example
+│   └── PersistenceExample.cs      # Persistence example
 │
-└── UI/
-    └── InteractiveApp.cs          # Interactive console menu
+├── Data/                          # Database layer
+│   ├── Models.cs                  # Database models
+│   └── MeAIDbContext.cs           # Entity Framework DbContext
+│
+├── UI/
+│   └── InteractiveApp.cs          # Interactive console menu
+│
+├── docker-compose.yml             # Docker configuration
+├── scripts/
+│   ├── init-db.sql                # Database initialization
+│   └── pgadmin-servers.json       # pgAdmin configuration
+│
+└── README.md                       # Documentation
 ```
 
 ## 📚 Examples
@@ -106,6 +121,21 @@ Shows real-time token streaming for improved UX.
 - Progressive token output
 - Real-time response rendering
 - Better user experience for long responses
+
+### 5. Persistence Example
+Demonstrates storing conversations and embeddings in PostgreSQL.
+
+**Key Features**:
+- Create and manage conversations
+- Store and retrieve message history
+- Persist embeddings for semantic search
+- Data survives application restarts
+- Uses Entity Framework Core ORM
+- PostgreSQL with JSONB storage for embeddings
+
+**Prerequisites**:
+- Docker and docker-compose installed
+- Run `docker-compose up -d` to start PostgreSQL
 
 ## 🔌 Core Classes
 
@@ -158,7 +188,170 @@ var embeddings = await embeddingService.GetEmbeddingsAsync(texts);
 <PackageReference Include="OpenAI" Version="2.1.0" />
 <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
 ```
+
+## 🗄️ Database Persistence
+
+This project includes full data persistence support using **PostgreSQL** with **Entity Framework Core**.
+
+### What Gets Stored?
+
+- **Conversations**: Full chat conversation history with timestamps
+- **Messages**: Individual messages (user, assistant, system) with roles
+- **Embeddings**: Text embeddings for semantic search and analysis
+
+### Getting Started with Persistence
+
+#### 1. Start PostgreSQL and pgAdmin with Docker
+
+```bash
+# Make sure Docker is installed and running, then:
+docker-compose up -d
+
+# Verify containers are running:
+docker-compose ps
+```
+
+This will start:
+- **PostgreSQL**: Running on `localhost:5432`
+  - Username: `meai_user`
+  - Password: `meai_password`
+  - Database: `meai_db`
+
+- **pgAdmin**: Web UI running on `http://localhost:5050`
+  - Email: `admin@meai.local`
+  - Password: `admin_password`
+  - Pre-configured PostgreSQL server connection
+
+#### 2. Configure Connection String
+
+The `appsettings.json` is already configured for local Docker:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=meai_db;Username=meai_user;Password=meai_password;"
+  }
+}
+```
+
+For other environments, update the connection string accordingly.
+
+#### 3. Initialize the Database
+
+The database schema is automatically created on first run via Entity Framework Core. Tables created:
+
+- **conversations** - Stores conversation metadata
+- **messages** - Stores individual messages with conversation references
+- **embeddings** - Stores text and embeddings
+
+#### 4. Use Persistence in Your Code
+
+```csharp
+// Inject repositories
+private readonly IConversationRepository _conversationRepository;
+private readonly IEmbeddingRepository _embeddingRepository;
+
+// Create a conversation
+var conversation = await _conversationRepository.CreateAsync(
+    title: "My Discussion",
+    modelName: "gpt-4-turbo");
+
+// Add messages
+await _conversationRepository.AddMessageAsync(
+    conversation.Id, "user", "Hello, how are you?");
+
+// Store embeddings
+var embedding = await embeddingService.GetEmbeddingAsync("Sample text");
+await _embeddingRepository.StoreAsync("Sample text", embedding);
+
+// Retrieve data
+var storedConversation = await _conversationRepository.GetByIdAsync(conversation.Id);
+var allEmbeddings = await _embeddingRepository.GetAllAsync();
+```
+
+### PersistenceExample
+
+The application includes a complete example demonstrating:
+
+```bash
+dotnet run
+# Select option 5: Persistence Example
+```
+
+This example shows:
+- Creating and managing conversations
+- Storing/retrieving messages
+- Embedding storage and search
+- Data persistence across application restarts
+
+### Repository Interfaces
+
+#### IConversationRepository
+- `CreateAsync()` - Create new conversation
+- `GetByIdAsync()` - Retrieve conversation with all messages
+- `GetAllAsync()` - List all conversations
+- `UpdateAsync()` - Update conversation title
+- `DeleteAsync()` - Delete conversation (cascades to messages)
+- `AddMessageAsync()` - Add message to conversation
+- `GetMessagesAsync()` - Retrieve conversation messages
+
+#### IEmbeddingRepository
+- `StoreAsync()` - Save text and embedding
+- `GetAllAsync()` - Retrieve all embeddings
+- `GetByIdAsync()` - Get specific embedding
+- `DeleteAsync()` - Remove embedding
+- `SearchAsync()` - Find similar embeddings (cosine similarity)
+
+### Managing PostgreSQL
+
+#### View Data with pgAdmin
+
+1. Open `http://localhost:5050` in your browser
+2. Login with `admin@meai.local` / `admin_password`
+3. Expand "Servers" → "MeAI PostgreSQL"
+4. Browse tables under "Databases" → "meai_db" → "public"
+
+#### Command Line Access
+
+```bash
+# Connect to PostgreSQL
+psql -h localhost -U meai_user -d meai_db
+
+# List tables
+\dt
+
+# View conversations
+SELECT * FROM conversations;
+
+# View messages for a conversation
+SELECT * FROM messages WHERE conversation_id = 1;
+```
+
+### Stopping Containers
+
+```bash
+# Stop without removing data:
+docker-compose stop
+
+# Stop and remove containers (data persists in volumes):
+docker-compose down
+
+# Stop and remove everything (data also removed):
+docker-compose down -v
+```
+
+### Production Considerations
+
+For production use, consider:
+
+1. **Vector Search**: Upgrade to pgvector extension for native vector similarity
+2. **Connection Pooling**: Use Npgsql connection pooling
+3. **Migrations**: Use EF Core migrations for schema updates
+4. **Backups**: Regular PostgreSQL backups
+5. **Security**: Use environment variables for connection strings and credentials
 
 ## 🎓 Learning Paths
 
@@ -185,10 +378,20 @@ var embeddings = await embeddingService.GetEmbeddingsAsync(texts);
 Run the application and select examples from the interactive menu:
 
 ```bash
+# Start PostgreSQL containers first (for persistence example)
+docker-compose up -d
+
+# Run the application
 dotnet run
-# Select option 1-4 to run examples
-# Select option 5 for documentation
-# Select option 6 to exit
+
+# Select examples:
+# Option 1: Chat Example
+# Option 2: Text Generation Example
+# Option 3: Embeddings Example
+# Option 4: Streaming Example
+# Option 5: Persistence Example (requires PostgreSQL)
+# Option 6: Documentation
+# Option 7: Exit
 ```
 
 ## 🔐 Security Best Practices

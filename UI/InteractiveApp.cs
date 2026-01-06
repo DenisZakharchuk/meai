@@ -60,10 +60,18 @@ public class InteractiveApp
                     break;
 
                 case "5":
-                    PrintDocumentation();
+                    await RunExample("Persistence Example", async () =>
+                    {
+                        var example = _serviceProvider.GetRequiredService<PersistenceExample>();
+                        await example.RunAsync();
+                    });
                     break;
 
                 case "6":
+                    PrintDocumentation();
+                    break;
+
+                case "7":
                 case "q":
                 case "exit":
                     Console.WriteLine("\n👋 Goodbye!");
@@ -94,9 +102,10 @@ public class InteractiveApp
         Console.WriteLine("  2. Text Generation - Create content with different parameters");
         Console.WriteLine("  3. Embeddings - Generate and analyze text embeddings");
         Console.WriteLine("  4. Streaming - Real-time streaming responses");
-        Console.WriteLine("  5. Documentation - Learn more about this project");
-        Console.WriteLine("  6. Exit");
-        Console.Write("\n👉 Enter your choice (1-6): ");
+        Console.WriteLine("  5. Persistence - Store conversations and embeddings in PostgreSQL");
+        Console.WriteLine("  6. Documentation - Learn more about this project");
+        Console.WriteLine("  7. Exit");
+        Console.Write("\n👉 Enter your choice (1-7): ");
     }
 
     private async Task RunExample(string title, Func<Task> example)
