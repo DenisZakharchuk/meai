@@ -4,7 +4,7 @@
         {
             "label": "ensure-docker-daemon",
             "type": "shell",
-            "command": "if ! docker ps > /dev/null 2>&1; then echo 'Starting Docker daemon...'; sudo service docker start || sudo /usr/bin/dockerd > /dev/null 2>&1 &; sleep 3; echo 'Docker started'; else echo 'Docker already running'; fi",
+            "command": "if ! docker ps > /dev/null 2>&1; then echo 'Starting Docker daemon...'; sudo service docker start || sudo /usr/bin/dockerd > /dev/null 2>&1 & sleep 3; echo 'Docker started'; else echo 'Docker already running'; fi",
             "presentation": {
                 "reveal": "silent",
                 "panel": "shared"
