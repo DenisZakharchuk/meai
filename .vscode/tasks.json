@@ -4,11 +4,7 @@
         {
             "label": "ensure-docker-daemon",
             "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "if ! docker ps > /dev/null 2>&1; then echo \\\"Starting Docker daemon...\\\"; sudo service docker start || sudo /usr/bin/dockerd > /dev/null 2>&1 &; sleep 3; echo \\\"Docker started\\\"; else echo \\\"Docker already running\\\"; fi"
-            ],
+            "command": "if ! docker ps > /dev/null 2>&1; then echo 'Starting Docker daemon...'; sudo service docker start || sudo /usr/bin/dockerd > /dev/null 2>&1 &; sleep 3; echo 'Docker started'; else echo 'Docker already running'; fi",
             "presentation": {
                 "reveal": "silent",
                 "panel": "shared"
@@ -18,11 +14,7 @@
         {
             "label": "ensure-docker-compose",
             "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "cd ${workspaceFolder} && if ! docker ps --filter 'name=meai-postgres' --format '{{.Names}}' | grep -q meai-postgres; then echo \\\"Starting PostgreSQL and pgAdmin...\\\"; docker-compose up -d; sleep 5; echo \\\"Containers started\\\"; else echo \\\"PostgreSQL already running\\\"; fi"
-            ],
+            "command": "cd ${workspaceFolder} && if ! docker ps --filter 'name=meai-postgres' --format '{{.Names}}' | grep -q meai-postgres; then echo 'Starting PostgreSQL and pgAdmin...'; docker-compose up -d; sleep 5; echo 'Containers started'; else echo 'PostgreSQL already running'; fi",
             "dependsOn": ["ensure-docker-daemon"],
             "presentation": {
                 "reveal": "silent",
