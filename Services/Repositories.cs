@@ -155,7 +155,7 @@ public class EmbeddingRepository : IEmbeddingRepository
         // Get all embeddings and calculate similarity in-memory
         // For production, consider using pgvector or a dedicated vector DB
         var allEmbeddings = await GetAllAsync();
-        
+
         var results = allEmbeddings
             .Select(e => new { Embedding = e, Similarity = CalculateCosineSimilarity(embedding, e.Embedding) })
             .OrderByDescending(x => x.Similarity)

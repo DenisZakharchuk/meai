@@ -42,30 +42,30 @@ public class PersistenceExample
 
             // Step 2: Add messages to the conversation
             Console.WriteLine("Step 2: Adding messages to the conversation...");
-            
+
             var systemMessage = ChatMessage.CreateSystemMessage(
                 "You are a helpful AI assistant specializing in C# and .NET development.");
-            
+
             var userMessage = ChatMessage.CreateUserMessage(
                 "What are the benefits of using Entity Framework Core?");
-            
+
             // Store messages in database
             await _conversationRepository.AddMessageAsync(
                 conversation.Id, "system", systemMessage.Content?.ToString() ?? "System message");
             await _conversationRepository.AddMessageAsync(
                 conversation.Id, "user", userMessage.Content?.ToString() ?? "User question");
-            
+
             Console.WriteLine("✓ Added system and user messages to conversation\n");
 
             // Step 3: Get AI response and store it
             Console.WriteLine("Step 3: Getting AI response...");
             var messages = new List<ChatMessage> { systemMessage, userMessage };
-            
+
             try
             {
                 var response = await _chatService.GetChatCompletionAsync(messages);
                 Console.WriteLine($"AI Response: {response}\n");
-                
+
                 // Store AI response in database
                 await _conversationRepository.AddMessageAsync(
                     conversation.Id, "assistant", response);
@@ -74,25 +74,25 @@ public class PersistenceExample
             {
                 Console.WriteLine($"Note: API call failed (check your API key): {ex.Message}");
                 Console.WriteLine("Storing a demo response instead...\n");
-                
+
                 var demoResponse = "Entity Framework Core provides a powerful ORM with LINQ support, " +
                     "automatic change tracking, and seamless database migrations. It simplifies data access " +
                     "and maintains type safety throughout your application.";
-                
+
                 await _conversationRepository.AddMessageAsync(
                     conversation.Id, "assistant", demoResponse);
             }
 
             // Step 4: Store embeddings for semantic search
             Console.WriteLine("Step 4: Storing text embeddings for semantic search...");
-            
+
             var textsToEmbed = new[]
             {
                 "Entity Framework Core is an ORM framework",
                 "PostgreSQL is a powerful relational database",
                 "Vector databases enable semantic search"
             };
-            
+
             foreach (var text in textsToEmbed)
             {
                 try
@@ -115,18 +115,18 @@ public class PersistenceExample
             // Step 5: Retrieve and display stored conversation
             Console.WriteLine("Step 5: Retrieving conversation from database...");
             var retrievedConversation = await _conversationRepository.GetByIdAsync(conversation.Id);
-            
+
             if (retrievedConversation != null)
             {
                 Console.WriteLine($"Conversation: {retrievedConversation.Title}");
                 Console.WriteLine($"Created: {retrievedConversation.CreatedAt:yyyy-MM-dd HH:mm:ss}");
                 Console.WriteLine($"Messages: {retrievedConversation.Messages.Count}");
                 Console.WriteLine("\nMessage History:");
-                
+
                 foreach (var msg in retrievedConversation.Messages)
                 {
-                    var preview = msg.Content.Length > 80 
-                        ? msg.Content.Substring(0, 80) + "..." 
+                    var preview = msg.Content.Length > 80
+                        ? msg.Content.Substring(0, 80) + "..."
                         : msg.Content;
                     Console.WriteLine($"  [{msg.Role.ToUpper()}]: {preview}");
                 }
@@ -147,8 +147,8 @@ public class PersistenceExample
             var allEmbeddings = await _embeddingRepository.GetAllAsync();
             foreach (var emb in allEmbeddings)
             {
-                var preview = emb.Text.Length > 50 
-                    ? emb.Text.Substring(0, 50) + "..." 
+                var preview = emb.Text.Length > 50
+                    ? emb.Text.Substring(0, 50) + "..."
                     : emb.Text;
                 Console.WriteLine($"  - {preview} (ID: {emb.Id})");
             }

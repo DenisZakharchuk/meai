@@ -5,14 +5,14 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE IF NOT EXISTS embeddings (
     id SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
-    embedding vector(1536),
+    embedding jsonb,
     model_name VARCHAR(100) DEFAULT 'text-embedding-3-small',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index for faster similarity search
-CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+-- Create index for text search
+CREATE INDEX IF NOT EXISTS idx_embeddings_text ON embeddings USING gin(to_tsvector('english', text));
 
 -- Create conversations table
 CREATE TABLE IF NOT EXISTS conversations (

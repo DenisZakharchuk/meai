@@ -1,10 +1,10 @@
+using MeAI.Data;
+using MeAI.Services;
+using MeAI.UI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MeAI.Data;
-using MeAI.Services;
-using MeAI.UI;
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false)
@@ -22,6 +22,9 @@ services.AddLogging(builder =>
     builder.AddConsole();
     builder.SetMinimumLevel(LogLevel.Information);
 });
+
+// Register HTTP client factory for Ollama
+services.AddHttpClient();
 
 // Register database context
 var connectionString = configuration.GetConnectionString("DefaultConnection");

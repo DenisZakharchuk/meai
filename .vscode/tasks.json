@@ -15,7 +15,9 @@
             "label": "ensure-docker-compose",
             "type": "shell",
             "command": "cd ${workspaceFolder} && if ! docker ps --filter 'name=meai-postgres' --format '{{.Names}}' | grep -q meai-postgres; then echo 'Starting PostgreSQL and pgAdmin...'; docker-compose up -d; sleep 5; echo 'Containers started'; else echo 'PostgreSQL already running'; fi",
-            "dependsOn": ["ensure-docker-daemon"],
+            "dependsOn": [
+                "ensure-docker-daemon"
+            ],
             "presentation": {
                 "reveal": "silent",
                 "panel": "shared"
@@ -32,7 +34,9 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "dependsOn": ["ensure-docker-compose"],
+            "dependsOn": [
+                "ensure-docker-compose"
+            ],
             "problemMatcher": "$msCompile",
             "group": {
                 "kind": "build",

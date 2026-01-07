@@ -26,7 +26,7 @@ public class ConversationModel
     public string ModelName { get; set; } = "gpt-4-turbo";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    
+
     // Navigation property
     public ICollection<MessageModel> Messages { get; set; } = new List<MessageModel>();
 }
@@ -41,7 +41,7 @@ public class MessageModel
     public string Role { get; set; } = string.Empty; // "system", "user", "assistant"
     public string Content { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
     // Foreign key
     public ConversationModel? Conversation { get; set; }
 }

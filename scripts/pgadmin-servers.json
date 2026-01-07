@@ -1,14 +1,14 @@
 {
-  "Servers": {
-    "1": {
-      "Name": "MeAI PostgreSQL",
-      "Group": "Servers",
-      "Host": "postgres",
-      "Port": 5432,
-      "MaintenanceDB": "meai_db",
-      "Username": "meai_user",
-      "Password": "meai_password",
-      "SSLMode": "prefer"
+    "Servers": {
+        "1": {
+            "Name": "MeAI PostgreSQL",
+            "Group": "Servers",
+            "Host": "postgres",
+            "Port": 5432,
+            "MaintenanceDB": "meai_db",
+            "Username": "meai_user",
+            "Password": "meai_password",
+            "SSLMode": "prefer"
+        }
     }
-  }
 }

@@ -20,7 +20,33 @@ public static class AIServiceExtensions
             sp.Dispose();
         }
 
+        var llmProvider = configuration["LLMProvider"]?.ToLower() ?? "openai";
+        var ollmaConfig = configuration.GetSection("Ollama");
         var openAiConfig = configuration.GetSection("OpenAI");
+
+        if (llmProvider == "ollama")
+        {
+            Console.WriteLine("✓ Using Ollama as LLM provider");
+            RegisterOllamaServices(services, configuration, ollmaConfig);
+        }
+        else
+        {
+            Console.WriteLine("✓ Using OpenAI as LLM provider");
+            RegisterOpenAIServices(services, configuration, openAiConfig);
+        }
+
+        // Register example services
+        services.AddScoped<ChatExample>();
+        services.AddScoped<TextGenerationExample>();
+        services.AddScoped<EmbeddingExample>();
+        services.AddScoped<StreamingExample>();
+        services.AddScoped<PersistenceExample>();
+
+        return services;
+    }
+
+    private static void RegisterOpenAIServices(IServiceCollection services, IConfiguration configuration, IConfigurationSection openAiConfig)
+    {
         var apiKey = openAiConfig["ApiKey"];
 
         if (string.IsNullOrEmpty(apiKey) || apiKey == "your-api-key-here")
@@ -49,14 +75,45 @@ public static class AIServiceExtensions
             var model = openAiConfig["EmbeddingModel"] ?? "text-embedding-3-small";
             return new OpenAIEmbeddingService(client, model);
         });
+    }
 
-        // Register example services
-        services.AddScoped<ChatExample>();
-        services.AddScoped<TextGenerationExample>();
-        services.AddScoped<EmbeddingExample>();
-        services.AddScoped<StreamingExample>();
-        services.AddScoped<PersistenceExample>();
+    private static void RegisterOllamaServices(IServiceCollection services, IConfiguration configuration, IConfigurationSection ollmaConfig)
+    {
+        var baseUrl = ollmaConfig["BaseUrl"] ?? "http://localhost:11434";
+        var model = ollmaConfig["ChatModel"] ?? "mistral";
 
-        return services;
+        Console.WriteLine($"✓ Ollama configured at {baseUrl} with model {model}");
+
+        // Register HttpClient for Ollama
+        services.AddHttpClient();
+
+        // Register chat service
+        services.AddScoped<IChatService>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient();
+            return new OllamaChatService(httpClient, model, baseUrl);
+        });
+
+        // Register embedding service (still using OpenAI if available, or mock)
+        services.AddScoped<IEmbeddingService>(sp =>
+        {
+            var openAiConfig = configuration.GetSection("OpenAI");
+            var apiKey = openAiConfig["ApiKey"];
+
+            if (!string.IsNullOrEmpty(apiKey) && apiKey != "your-api-key-here")
+            {
+                var client = new OpenAIClient(apiKey);
+                var model = openAiConfig["EmbeddingModel"] ?? "text-embedding-3-small";
+                return new OpenAIEmbeddingService(client, model);
+            }
+            else
+            {
+                Console.WriteLine("⚠️  Warning: OpenAI API key not configured for embeddings. Embeddings example will not work.");
+                // Return a mock implementation or null
+                throw new InvalidOperationException("OpenAI API key required for embeddings service");
+            }
+        });
     }
 }
+
