@@ -53,14 +53,12 @@ services:
       OLLAMA_HOST: "0.0.0.0:11434"
     networks:
       - meai-network
-    # Uncomment to use GPU (nvidia-docker required)
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+        reservations:
+          memory: 8G
 
 volumes:
   postgres_data:
