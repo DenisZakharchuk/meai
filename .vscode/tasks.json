@@ -12,11 +12,40 @@
             "problemMatcher": []
         },
         {
+            "label": "ensure-docker-daemon-windows",
+            "type": "shell",
+            "command": "powershell -Command \"$dockerRunning = docker ps > $null 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'Starting Docker Desktop...'; Start-Process 'C:\\Program Files\\Docker\\Docker\\Docker.exe'; Start-Sleep -Seconds 10; Write-Host 'Docker started' } else { Write-Host 'Docker already running' }\"",
+            "windows": {
+                "command": "powershell"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "ensure-docker-compose",
             "type": "shell",
             "command": "cd ${workspaceFolder} && if ! docker ps --filter 'name=meai-postgres' --format '{{.Names}}' | grep -q meai-postgres; then echo 'Starting PostgreSQL and pgAdmin...'; docker-compose up -d; sleep 5; echo 'Containers started'; else echo 'PostgreSQL already running'; fi",
             "dependsOn": [
                 "ensure-docker-daemon"
+            ],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ensure-docker-compose-windows",
+            "type": "shell",
+            "command": "powershell -Command \"$containerName = docker ps --filter 'name=meai-postgres' --format '{{.Names}}' 2>$null; if (-not $containerName -or $containerName -notlike '*meai-postgres*') { Write-Host 'Starting PostgreSQL and pgAdmin...'; docker-compose up -d; Start-Sleep -Seconds 5; Write-Host 'Containers started' } else { Write-Host 'PostgreSQL already running' }\"",
+            "windows": {
+                "command": "powershell"
+            },
+            "dependsOn": [
+                "ensure-docker-daemon-windows"
             ],
             "presentation": {
                 "reveal": "silent",
@@ -41,6 +70,24 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "build-windows",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/MeAI.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "dependsOn": [
+                "ensure-docker-compose-windows"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build"
             }
         },
         {
